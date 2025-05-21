@@ -1,0 +1,56 @@
+﻿name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run a sample
+# Définir les dossiers à créer
+article code docs slides .github\workflows = @(
+    "article",
+    "code",
+    "docs",
+    "slides",
+    ".github\workflows"
+)
+
+# Créer les dossiers s'ils n'existent pas déjà
+foreach (.github\workflows in article code docs slides .github\workflows) {
+    if (-not (Test-Path .github\workflows)) {
+        New-Item -Path .github\workflows -ItemType Directory -Force | Out-Null
+    }
+}
+
+# Fichiers à créer dans article
+main.tex main.pdf bibliography.bib comparatif_conferences.tex = @(
+    "main.tex",
+    "main.pdf",
+    "bibliography.bib",
+    "comparatif_conferences.tex"
+)
+
+foreach (comparatif_conferences.tex in main.tex main.pdf bibliography.bib comparatif_conferences.tex) {
+    article\comparatif_conferences.tex = Join-Path -Path "article" -ChildPath comparatif_conferences.tex
+    if (-not (Test-Path article\comparatif_conferences.tex)) {
+        New-Item -ItemType File -Path article\comparatif_conferences.tex -Force | Out-Null
+    }
+}
+
+# Fichier YAML par défaut dans .github/workflows
+.github\workflows\ci.yml = ".github\workflows\ci.yml"
+if (-not (Test-Path .github\workflows\ci.yml)) {
+    @"
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run a sample step
+        run: echo Hello World
